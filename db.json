@@ -2,11 +2,11 @@
   "users": [
     {
       "login": "admin",
-      "passw": "8675309",
+      "passw": "admin",
       "role": "admin",
-      "executor": "Чайко А. В.",
-      "phone": "+ (375 29) 368-69-68, + (375 29) 919-59-99",
-      "email": "sales1@server-x.by"
+      "executor": "test",
+      "phone": "test",
+      "email": "test"
     },
     {
       "login": "user",
