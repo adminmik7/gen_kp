@@ -45,7 +45,7 @@ node server.js
 
 | Логин | Пароль | Роль |
 |-------|--------|------|
-| admin | 8675309 | admin |
+| admin | admin | admin |
 | manager | manager | user |
 
 ## Использование
