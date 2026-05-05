@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "login": "admin",
+      "passw": "8675309",
+      "role": "admin",
+      "executor": "Чайко А. В.",
+      "phone": "+ (375 29) 368-69-68, + (375 29) 919-59-99",
+      "email": "sales1@server-x.by"
+    },
+    {
+      "login": "user",
+      "passw": "user",
+      "role": "user",
+      "executor": "user",
+      "phone": "+3750000000000",
+      "email": "tututut"
+    },
+    {
+      "login": "1234",
+      "passw": "1234",
+      "role": "user",
+      "executor": "1234",
+      "phone": "12334",
+      "email": "1234"
+    },
+    {
+      "login": "test",
+      "passw": "test",
+      "role": "user",
+      "executor": "test",
+      "phone": "test",
+      "email": "test"
+    }
+  ]
+}

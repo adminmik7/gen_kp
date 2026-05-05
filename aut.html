@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-form KP · Users</title>
+    <style>
+        /* ---------- ПЕРЕМЕННЫЕ ТЕМ (как в index.html) ---------- */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #374151;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #d1d5db;
+            --accent-gradient-start: #7c3aed;
+            --accent-gradient-end: #8b5cf6;
+            --shadow-sm: 0 2px 6px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 40px -12px rgba(0,0,0,0.3);
+            --btn-logout-bg: #ffffff;
+            --btn-logout-text: #64748b;
+            --btn-logout-border: #e2e8f0;
+            --btn-logout-hover-bg: #f8fafc;
+            --btn-logout-hover-border: #cbd5e1;
+            --btn-logout-hover-text: #0f172a;
+            --table-header-bg: #f8fafc;
+            --footer-bg: #f8fafc;
+            --footer-border: #7c3aed;
+            --input-bg: #f8fafc;
+            --input-border: #e2e8f0;
+            --input-focus-shadow: rgba(124, 58, 237, 0.1);
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --error-text: #dc2626;
+            --hint-bg: #fef3c7;
+            --hint-border: #f59e0b;
+            --hint-text: #92400e;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(20, 184, 166, 0.12) 100%);
+            color: var(--text-primary);
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            font-size: 10pt;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .users-table th {
+            background-color: var(--table-header-bg);
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.8rem;
+        }
+
+        .users-table input,
+        .users-table select {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 10pt;
+            color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .users-table input:focus,
+        .users-table select:focus {
+            outline: none;
+            border-color: var(--accent-gradient-start);
+            box-shadow: 0 0 0 3px var(--input-focus-shadow);
+        }
+
+        .users-table input[readonly] {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: default;
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 9pt;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            box-shadow: var(--shadow-sm);
+            gap: 4px;
+        }
+
+        .btn-icon.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .btn-icon:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        .btn-icon:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            box-shadow: var(--shadow-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            width: 380px;
+            max-width: 90%;
+            border: 1px solid var(--border-light);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            margin: 0 0 16px;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+        }
+
+        .modal label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+        .modal input,
+        .modal select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Тосты */
+        #toastContainer {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border-left: 4px solid;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-success { border-left-color: #22c55e; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-warning { border-left-color: #f59e0b; }
+        .toast-info { border-left-color: #3b82f6; }
+
+        .toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+        .toast-success .toast-icon { color: #22c55e; }
+        .toast-error .toast-icon { color: #ef4444; }
+        .toast-warning .toast-icon { color: #f59e0b; }
+        .toast-info .toast-icon { color: #3b82f6; }
+
+        .toast-content { flex: 1; font-size: 0.9rem; line-height: 1.4; }
+        .toast-close {
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.2rem; cursor: pointer; padding: 0; line-height: 1;
+            flex-shrink: 0; opacity: 0.6; transition: opacity 0.2s;
+        }
+        .toast-close:hover { opacity: 1; }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="toastContainer"></div>
+
+    <!-- Модальное окно редактирования пользователя -->
+    <div class="modal-overlay" id="editUserModal">
+        <div class="modal">
+            <h3>Редактировать пользователя</h3>
+            <label>Пароль (оставьте пустым, чтобы не менять)</label>
+            <input type="password" id="editPassword" placeholder="Новый пароль">
+            <label>Подтверждение пароля</label>
+            <input type="password" id="editConfirmPassword" placeholder="Подтвердите пароль">
+            <label>Исполнитель</label>
+            <input type="text" id="editExecutor" placeholder="Исполнитель">
+            <label>Телефон</label>
+            <input type="text" id="editPhone" placeholder="Телефон">
+            <label>E-mail</label>
+            <input type="email" id="editEmail" placeholder="E-mail">
+            <div class="modal-actions">
+                <button class="btn-icon" id="editModalCancel" style="background: #9ca3af;">Отмена</button>
+                <button class="btn-icon" id="editModalSave" style="background: #22c55e;">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления пользователя -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal">
+            <h3>Добавить пользователя</h3>
+            <label>Логин</label>
+            <input type="text" id="newLogin" placeholder="Логин">
+            <label>Пароль</label>
+            <input type="password" id="newPass" placeholder="Пароль">
+            <label>Роль</label>
+            <select id="newRole">
+                <option value="user">Пользователь</option>
+                <option value="admin">Администратор</option>
+            </select>
+            <label>Исполнитель</label>
+            <input type="text" id="newExecutor" placeholder="Исполнитель">
+            <label>Телефон</label>
+            <input type="text" id="newPhone" placeholder="Телефон">
+            <label>E-mail</label>
+            <input type="email" id="newEmail" placeholder="E-mail">
+            <div class="modal-actions">
+                <button class="btn-icon" id="addModalCancel" style="background: #9ca3af;">Отмена</button>
+                <button class="btn-icon" id="addModalSave" style="background: #22c55e;">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header-row">
+            <h1>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Управление пользователями
+            </h1>
+            </div>
+
+        <div class="card">
+            <table class="users-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Логин</th>
+                        <th>Роль</th>
+                        <th>E-mail</th>
+                        <th style="width: 200px;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="action-bar" style="justify-content: flex-end;">
+                <button class="btn btn-primary" id="addUserBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Добавить пользователя
+                </button>
+                <button class="btn btn-success" id="saveAllBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Сохранить все изменения
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- ПРОВЕРКА ПРАВ ДОСТУПА ----------
+        (function checkAccess() {
+            const isAuth = localStorage.getItem('gen_cp_authenticated');
+            if (isAuth !== 'true') {
+                window.location.href = '/';
+            }
+        })();
+
+        // ---------- SHA-256 ----------
+        function sha256(message) {
+            function rotr(x, n) { return (x >>> n) | (x << (32 - n)); }
+            function ch(x, y, z) { return (x & y) ^ (~x & z); }
+            function maj(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); }
+            function sigma0(x) { return rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22); }
+            function sigma1(x) { return rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25); }
+            function gamma0(x) { return rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3); }
+            function gamma1(x) { return rotr(x, 17) ^ rotr(x, 19) ^ (x >>> 10); }
+
+            const K = [
+                0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+                0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+                0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+                0x983e5152,0xa831c66d,0xb00327c8,0x8b597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+                0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+                0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+                0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+                0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+            ];
+            const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+            const msgBytes = new TextEncoder().encode(message);
+            const msgBitLen = msgBytes.length * 8;
+            const msg = new Uint8Array(msgBytes.length + 1 + 8 + (64 - ((msgBytes.length + 1 + 8) % 64)));
+            msg.set(msgBytes);
+            msg[msgBytes.length] = 0x80;
+            const view = new DataView(msg.buffer);
+            view.setUint32(msg.length - 4, msgBitLen >>> 0, false);
+            view.setUint32(msg.length - 8, Math.floor(msgBitLen / 0x100000000), false);
+
+            for (let i = 0; i < msg.length; i += 64) {
+                const W = new Uint32Array(64);
+                for (let t = 0; t < 16; t++) W[t] = view.getUint32(i + t * 4, false);
+                for (let t = 16; t < 64; t++) W[t] = (gamma1(W[t-2]) + W[t-7] + gamma0(W[t-15]) + W[t-16]) >>> 0;
+                let [a,b,c,d,e,f,g,h] = H;
+                for (let t = 0; t < 64; t++) {
+                    const T1 = (h + sigma1(e) + ch(e,f,g) + K[t] + W[t]) >>> 0;
+                    const T2 = (sigma0(a) + maj(a,b,c)) >>> 0;
+                    h = g; g = f; f = e; e = (d + T1) >>> 0; d = c; c = b; b = a; a = (T1 + T2) >>> 0;
+                }
+                H[0] = (H[0]+a)>>>0; H[1] = (H[1]+b)>>>0; H[2] = (H[2]+c)>>>0; H[3] = (H[3]+d)>>>0;
+                H[4] = (H[4]+e)>>>0; H[5] = (H[5]+f)>>>0; H[6] = (H[6]+g)>>>0; H[7] = (H[7]+h)>>>0;
+            }
+            return H.map(x => x.toString(16).padStart(8,'0')).join('');
+        }
+
+        // ---------- ТОСТЫ ----------
+        function showToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            let iconSvg = '';
+            if (type === 'success') iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+            else if (type === 'error') iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+            else if (type === 'warning') iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`;
+            else iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+            toast.innerHTML = `${iconSvg}<div class="toast-content">${message}</div><button class="toast-close">&times;</button>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            const closeBtn = toast.querySelector('.toast-close');
+            const removeToast = () => {
+                toast.classList.remove('show');
+                setTimeout(() => { if (toast.parentNode) container.removeChild(toast); }, 300);
+            };
+            closeBtn.addEventListener('click', removeToast);
+            const timeoutId = setTimeout(removeToast, duration);
+            toast.addEventListener('mouseenter', () => clearTimeout(timeoutId));
+            toast.addEventListener('mouseleave', () => {
+                const newTimeout = setTimeout(removeToast, duration);
+                toast.dataset.timeoutId = newTimeout;
+            });
+        }
+
+        // ---------- УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ----------
+        const currentUser = localStorage.getItem('gen_cp_user');
+        let users = [];
+        const tableBody = document.querySelector('#usersTable tbody');
+        let pendingEditIndex = null;
+
+       // Модалки
+        const editUserModal = document.getElementById('editUserModal');
+        const editPasswordInput = document.getElementById('editPassword');
+        const editConfirmPasswordInput = document.getElementById('editConfirmPassword');
+        const editExecutorInput = document.getElementById('editExecutor');
+        const editPhoneInput = document.getElementById('editPhone');
+        const editEmailInput = document.getElementById('editEmail');
+        const editModalCancel = document.getElementById('editModalCancel');
+        const editModalSave = document.getElementById('editModalSave');
+
+        const addUserModal = document.getElementById('addUserModal');
+        const newLoginInput = document.getElementById('newLogin');
+        const newPassInputAdd = document.getElementById('newPass');
+        const newRoleSelect = document.getElementById('newRole');
+        const newExecutorInput = document.getElementById('newExecutor');
+        const newPhoneInput = document.getElementById('newPhone');
+        const newEmailInput = document.getElementById('newEmail');
+        const addModalCancel = document.getElementById('addModalCancel');
+        const addModalSave = document.getElementById('addModalSave');
+
+        function openEditUserModal(index) {
+            pendingEditIndex = index;
+            const user = users[index];
+            editPasswordInput.value = '';
+            editConfirmPasswordInput.value = '';
+            editExecutorInput.value = user.executor || '';
+            editPhoneInput.value = user.phone || '';
+            editEmailInput.value = user.email || '';
+            editUserModal.classList.add('show');
+        }
+
+        function closeEditUserModal() {
+            editUserModal.classList.remove('show');
+            pendingEditIndex = null;
+        }
+
+        function openAddUserModal() {
+            newLoginInput.value = '';
+            newPassInputAdd.value = '';
+            newRoleSelect.value = 'user';
+            newExecutorInput.value = '';
+            newPhoneInput.value = '';
+            newEmailInput.value = '';
+            addUserModal.classList.add('show');
+        }
+
+        function closeAddUserModal() {
+            addUserModal.classList.remove('show');
+        }
+
+        editModalCancel.addEventListener('click', closeEditUserModal);
+        editModalSave.addEventListener('click', () => {
+            if (pendingEditIndex === null) return;
+            const newPass = editPasswordInput.value;
+            const confirmPass = editConfirmPasswordInput.value;
+            if (newPass && newPass !== confirmPass) {
+                showToast('Пароли не совпадают', 'error');
+                return;
+            }
+            if (newPass) {
+                users[pendingEditIndex].passw = newPass;
+            }
+            users[pendingEditIndex].executor = editExecutorInput.value.trim();
+            users[pendingEditIndex].phone = editPhoneInput.value.trim();
+            users[pendingEditIndex].email = editEmailInput.value.trim();
+            renderTable();
+            showToast('Данные обновлены (сохраните изменения)', 'success');
+            closeEditUserModal();
+        });
+
+        addModalCancel.addEventListener('click', closeAddUserModal);
+        addModalSave.addEventListener('click', () => {
+            const login = newLoginInput.value.trim();
+            const pass = newPassInputAdd.value;
+            const role = newRoleSelect.value;
+            const executor = newExecutorInput.value.trim();
+            const phone = newPhoneInput.value.trim();
+            const email = newEmailInput.value.trim();
+            if (!login) {
+                showToast('Введите логин', 'warning');
+                return;
+            }
+            if (!pass) {
+                showToast('Введите пароль', 'warning');
+                return;
+            }
+            // Проверка уникальности логина
+            if (users.some(u => u.login === login)) {
+                showToast('Пользователь с таким логином уже существует', 'error');
+                return;
+            }
+            users.push({ login, passw: pass, role, executor, phone, email });
+            renderTable();
+            showToast('Пользователь добавлен', 'success');
+            closeAddUserModal();
+        });
+
+        // Закрытие по клику вне модалок
+        editUserModal.addEventListener('click', (e) => { if (e.target === editUserModal) closeEditUserModal(); });
+        addUserModal.addEventListener('click', (e) => { if (e.target === addUserModal) closeAddUserModal(); });
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/users');
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                // Ожидаем, что у каждого пользователя есть поле role (по умолчанию 'user')
+                users = data.users.map(u => ({ ...u, role: u.role || 'user' }));
+                renderTable();
+            } catch (err) {
+                showToast('Ошибка загрузки пользователей', 'error');
+            }
+        }
+
+        function isAdminUser(user) {
+            return user.role === 'admin';
+        }
+
+        function countAdmins() {
+            return users.filter(u => u.role === 'admin').length;
+        }
+
+        function canDeleteUser(index) {
+            return users[index].login !== currentUser;
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            users.forEach((user, index) => {
+                const tr = document.createElement('tr');
+                const canDelete = canDeleteUser(index);
+                const roleDisplay = user.role === 'admin' ? 'Администратор' : 'Пользователь';
+
+                tr.innerHTML = `
+                    <td>
+                        <span style="display: flex; align-items: center;">
+                            ${user.login}
+                            ${user.role === 'admin' ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 6px; color: var(--accent-gradient-start);" title="Администратор"><path d="M12 2L2 7v10l10 5 10-5V7l-10-5z"/><path d="M12 12l4 2v4l-4 2-4-2v-4l4-2z"/></svg>` : ''}
+                        </span>
+                    </td>
+                    <td>
+                        <select data-index="${index}" class="role-select" ${!canDelete ? 'disabled' : ''}>
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
+                        </select>
+                    </td>
+                    <td><input type="text" value="${user.email || '—'}" readonly></td>
+                    <td class="action-cell">
+                        <button class="btn-icon" data-index="${index}" data-action="edit-user">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="2" width="20" height="20" rx="2"/>
+                                <line x1="8" y1="8" x2="16" y2="16"/>
+                                <line x1="8" y1="16" x2="16" y2="8"/>
+                            </svg>
+                            Редактировать
+                        </button>
+                        <button class="btn-icon danger" data-index="${index}" data-action="delete" ${!canDelete ? 'disabled' : ''} title="${!canDelete ? 'Невозможно удалить этого пользователя' : ''}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Удалить
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // Обработчики изменения роли
+            document.querySelectorAll('.role-select').forEach(select => {
+                select.addEventListener('change', e => {
+                    const idx = e.target.dataset.index;
+                    users[idx].role = e.target.value;
+                    // При смене роли нужно перерисовать таблицу, чтобы обновить состояние кнопок удаления
+                    renderTable();
+                });
+            });
+
+            document.querySelectorAll('[data-action="edit-user"]').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const idx = e.currentTarget.dataset.index;
+                    openEditUserModal(parseInt(idx));
+                });
+            });
+
+            document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const idx = e.currentTarget.dataset.index;
+                    if (!canDeleteUser(idx)) {
+                        showToast('Невозможно удалить этого пользователя', 'warning');
+                        return;
+                    }
+                    if (confirm(`Удалить пользователя ${users[idx].login}?`)) {
+                        users.splice(idx, 1);
+                        renderTable();
+                        showToast('Пользователь удалён', 'info');
+                    }
+                });
+            });
+        }
+
+        document.getElementById('addUserBtn').addEventListener('click', openAddUserModal);
+
+        document.getElementById('saveAllBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveAllBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="0.75"/></svg> Сохранение...`;
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ users })
+                });
+                if (res.ok) {
+                    showToast('Изменения сохранены в db.json', 'success');
+                } else {
+                    throw new Error('Ошибка сервера');
+                }
+            } catch (err) {
+                showToast('Не удалось сохранить', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Сохранить все изменения`;
+            }
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-form KP</title>
+    <!-- Подключаем библиотеки для PDF (заглушка) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* ---------- ПЕРЕМЕННЫЕ ТЕМ ---------- */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #374151;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #d1d5db;
+            --accent-gradient-start: #7c3aed;
+            --accent-gradient-end: #8b5cf6;
+            --shadow-sm: 0 2px 6px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 40px -12px rgba(0,0,0,0.3);
+            --auth-overlay: rgba(15, 23, 42, 0.95);
+            --btn-logout-bg: #ffffff;
+            --btn-logout-text: #64748b;
+            --btn-logout-border: #e2e8f0;
+            --btn-logout-hover-bg: #f8fafc;
+            --btn-logout-hover-border: #cbd5e1;
+            --btn-logout-hover-text: #0f172a;
+            --table-header-bg: #f8fafc;
+            --footer-bg: #f8fafc;
+            --footer-border: #7c3aed;
+            --input-bg: #f8fafc;
+            --input-border: #e2e8f0;
+            --input-focus-shadow: rgba(124, 58, 237, 0.1);
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --error-text: #dc2626;
+            --hint-bg: #fef3c7;
+            --hint-border: #f59e0b;
+            --hint-text: #92400e;
+            --auth-footer-border: #f1f5f9;
+            --auth-footer-code-bg: #f1f5f9;
+            --auth-footer-code-text: #7c3aed;
+            --control-panel-border: #e2e8f0;
+            --modal-overlay: rgba(0,0,0,0.6);
+        }
+
+ 
+
+        /* ---------- СТИЛИ АВТОРИЗАЦИИ ---------- */
+        #authContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--auth-overlay);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        #authContainer.hidden {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+        .auth-box {
+            background: var(--bg-secondary);
+            width: 380px;
+            max-width: 90%;
+            padding: 36px 28px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(0);
+            transition: transform 0.3s ease, background-color 0.3s;
+            border: 1px solid rgba(124, 58, 237, 0.15);
+        }
+        #authContainer.hidden .auth-box {
+            transform: translateY(-20px);
+        }
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .auth-logo svg {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            border-radius: 14px;
+            padding: 10px;
+            color: white;
+            box-shadow: 0 8px 20px -5px rgba(124, 58, 237, 0.3);
+        }
+        .auth-box h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .auth-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+        .auth-input-group {
+            margin-bottom: 16px;
+        }
+        .auth-input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+        .auth-input-wrapper {
+            position: relative;
+        }
+        .auth-input-wrapper svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: #94a3b8;
+        }
+        .auth-input-wrapper input {
+            width: 100%;
+            padding: 11px 12px 11px 42px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--input-border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        .auth-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--accent-gradient-start);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 3px var(--input-focus-shadow);
+        }
+        .auth-input-wrapper input::placeholder {
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        .auth-error {
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            color: var(--error-text);
+            font-size: 0.85rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-error.show {
+            display: flex;
+        }
+        .auth-error svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .auth-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+            background: linear-gradient(135deg, var(--accent-gradient-end) 0%, var(--accent-gradient-start) 100%);
+        }
+        .auth-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);
+        }
+        .auth-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        .auth-footer {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--auth-footer-border);
+            padding-top: 16px;
+        }
+        .auth-footer code {
+            background: var(--auth-footer-code-bg);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--auth-footer-code-text);
+            font-size: 0.75rem;
+        }
+
+        /* Группа кнопок в правом верхнем углу */
+        .top-right-buttons {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+        .logout-btn, .admin-users-btn {
+            background: var(--btn-logout-bg);
+            border: 1px solid var(--btn-logout-border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+            color: var(--btn-logout-text);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .logout-btn.show, .admin-users-btn.show {
+            display: flex;
+        }
+        .logout-btn:hover, .admin-users-btn:hover {
+            background: var(--btn-logout-hover-bg);
+            border-color: var(--btn-logout-hover-border);
+            box-shadow: var(--shadow-md);
+            color: var(--btn-logout-hover-text);
+        }
+        .logout-btn svg, .admin-users-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Основной контент скрыт до авторизации */
+        body.auth-required .control-panel,
+        body.auth-required #printable-area {
+            opacity: 0;
+            pointer-events: none;
+        }
+        body.auth-success .control-panel,
+        body.auth-success #printable-area {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ---------- ТОСТЫ (УВЕДОМЛЕНИЯ) ---------- */
+        #toastContainer {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-secondary);
+            border-left: 4px solid;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast-success { border-left-color: #22c55e; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-warning { border-left-color: #f59e0b; }
+        .toast-info { border-left-color: #3b82f6; }
+        .toast-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+        }
+        .toast-success .toast-icon { color: #22c55e; }
+        .toast-error .toast-icon { color: #ef4444; }
+        .toast-warning .toast-icon { color: #f59e0b; }
+        .toast-info .toast-icon { color: #3b82f6; }
+        .toast-content {
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            flex-shrink: 0;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .toast-close:hover { opacity: 1; }
+
+        /* ---------- МОДАЛЬНОЕ ОКНО ---------- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-overlay);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        .modal-header {
+            padding: 20px 24px 12px 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .modal-body {
+            padding: 20px 24px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-btn.cancel {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        .modal-btn.cancel:hover {
+            background: var(--border-light);
+        }
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(239,68,68,0.2);
+        }
+        .modal-btn.confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(239,68,68,0.3);
+        }
+
+        @media print {
+            #toastContainer, .modal {
+                display: none !important;
+            }
+        }
+
+        /* ---------- ОСНОВНЫЕ СТИЛИ ---------- */
+        * { 
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(20, 184, 166, 0.12) 100%);
+            padding: 20px;
+            color: var(--text-primary);
+            font-size: 10pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .control-panel {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--control-panel-border);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 10pt;
+            transition: opacity 0.3s, background-color 0.3s, border-color 0.3s;
+        }
+        .control-panel h2 { 
+            margin-top: 0; 
+            border-bottom: 1px solid var(--border-light); 
+            padding-bottom: 12px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-panel h3 { 
+            margin: 24px 0 16px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .control-panel h3 .collapse-icon {
+            margin-left: auto;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .control-panel h3.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+        .section-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: var(--accent-gradient-start);
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { 
+            display: block; 
+            font-size: 0.85rem; 
+            margin-bottom: 6px; 
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; 
+            padding: 10px 14px; 
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 10pt;
+            font-family: inherit;
+            color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-gradient-start);
+            box-shadow: 0 0 0 3px var(--input-focus-shadow);
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+        .row-inputs {
+            display: flex; 
+            gap: 8px;
+            align-items: flex-end;
+            background: var(--bg-tertiary); 
+            padding: 16px; 
+            border: 1px solid var(--border-light);
+            border-radius: 10px; 
+            margin-bottom: 12px; 
+            flex-wrap: wrap;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .row-inputs .form-group { 
+            flex-grow: 1; 
+            min-width: 120px;
+            margin-bottom: 0;
+        }
+        .row-inputs .form-group.small { flex-grow: 0; width: 80px; }
+        .row-inputs .form-group.small-date { flex-grow: 0; width: 140px; }
+        .row-inputs .form-group.small-kp { flex-grow: 0; width: 70px; }
+        .row-inputs .form-group.small-term { flex-grow: 0; width: 70px; }
+
+        /* Единый блок условий поставки: по два в ряду */
+        .conditions-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .conditions-grid .form-group {
+            flex: 0 0 calc(50% - 8px);
+            min-width: 150px;
+            margin-bottom: 0;
+        }
+        @media (max-width: 600px) {
+            .conditions-grid .form-group {
+                flex: 1 1 100%;
+            }
+        }
+
+        .row-inputs input,
+        .row-inputs select,
+        .row-inputs .btn-add,
+        .row-inputs .btn-update,
+        .row-inputs .btn-cancel {
+            height: 40px;
+            box-sizing: border-box;
+        }
+        .row-inputs textarea {
+            min-height: 40px;
+            padding: 8px 12px !important;
+            line-height: 1.2;
+            resize: both;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .row-inputs .btn-add,
+        .row-inputs .btn-update,
+        .row-inputs .btn-cancel {
+            padding: 0 16px;
+            margin-bottom: 0;
+            align-self: flex-end;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .row-inputs .btn-cancel {
+            margin-left: 0;
+        }
+        .logo-signature-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .logo-signature-row .form-group {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 0;
+        }
+        .collapsible-content {
+            transition: opacity 0.2s;
+        }
+        .collapsible-content.collapsed {
+            display: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .btn-save, .btn-load, .btn-print, .btn-pdf, .btn-clear {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-save { 
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.12);
+        }
+        .btn-save:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(34, 197, 94, 0.2); }
+        .btn-load { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.12);
+        }
+        .btn-load:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(245, 158, 11, 0.2); }
+        .btn-print { 
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.12);
+        }
+        .btn-print:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(124, 58, 237, 0.2); }
+        .btn-pdf { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.12);
+        }
+        .btn-pdf:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(239, 68, 68, 0.2); }
+        .btn-clear { 
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            box-shadow: 0 8px 30px rgba(100, 116, 139, 0.12);
+        }
+        .btn-clear:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(100, 116, 139, 0.2); }
+        .btn-save:disabled, .btn-load:disabled, .btn-pdf:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .btn-save svg, .btn-load svg, .btn-print svg, .btn-pdf svg, .btn-clear svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        /* Кнопки добавления/обновления/отмены */
+        .btn-add { 
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            height: 40px;
+            padding: 0 16px;
+            font-size: 10pt;
+            font-weight: 500;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-add:hover { 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        }
+        
+        .btn-update {
+            display: none;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 0 16px;
+            height: 40px;
+            font-size: 10pt;
+            font-weight: 500;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-update:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        }
+        
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+            font-size: 10pt;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-cancel:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+
+        .edit-mode .btn-add { display: none; }
+        .edit-mode .btn-update { display: inline-flex; }
+
+        .btn-add svg, .btn-update svg, .btn-cancel svg {
+            stroke: white;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .kp-table .btn-edit,
+        .kp-table .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            font-size: 14px;
+            line-height: 1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            transition: background-color 0.2s;
+            margin: 0 2px;
+        }
+        .kp-table .btn-edit {
+            background-color: #3b82f6;
+        }
+        .kp-table .btn-edit:hover {
+            background-color: #2563eb;
+        }
+        .kp-table .btn-danger {
+            background-color: #ef4444;
+        }
+        .kp-table .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .browser-hint {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: var(--hint-bg);
+            border: 1px solid var(--hint-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--hint-text);
+            display: none;
+        }
+        .browser-hint.visible { display: block; }
+        .browser-hint strong { color: inherit; }
+        #printable-area {
+            background: var(--bg-secondary);
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-md);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            position: relative;
+            font-size: 10pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            transition: opacity 0.3s, background-color 0.3s;
+        }
+
+        /* Стили шапки с фоном и центрированием логотипа */
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-bottom: none;
+            gap: 20px;
+        }
+        .doc-logo {
+            max-width: 120px;
+            max-height: 80px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            flex-shrink: 0;
+        }
+        .doc-logo.hidden {
+            display: none;
+        }
+        .doc-header-text {
+            text-align: right;
+            flex: 1;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            color: var(--text-secondary);
+            background: transparent;
+            padding: 0;
+            margin: 0;
+        }
+        .doc-header-text strong { font-size: 11pt; color: var(--text-primary); }
+
+        .doc-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 10pt; color: var(--text-secondary); }
+        .kp-title { 
+            text-align: center; 
+            font-size: 14pt; 
+            margin-bottom: 15px; 
+            font-weight: 700; 
+            color: var(--text-primary); 
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        /* Новый блок условий вместо таблицы */
+        .conditions-box {
+            margin: 15px 0;
+            background: var(--footer-bg);
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 4px solid var(--footer-border);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color: var(--text-secondary);
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+        .conditions-box div {
+            margin-bottom: 4px;
+        }
+        .conditions-box strong {
+            color: var(--text-primary);
+            min-width: 120px;
+            display: inline-block;
+        }
+
+        .kp-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 10pt; 
+            margin-bottom: 15px;
+            user-select: none;
+        }
+        .kp-table th, .kp-table td { 
+            border: 1px solid var(--border-medium); 
+            padding: 5px 4px; 
+            text-align: center; 
+            font-size: 10pt; 
+            color: var(--text-secondary); 
+        }
+        .kp-table th { background-color: var(--table-header-bg); font-weight: 600; color: var(--text-primary); }
+        .kp-table td.text-left { text-align: left; }
+        .kp-table td.num { text-align: center; }
+        .kp-table td { word-wrap: break-word; }
+        .kp-table tbody tr {
+            cursor: grab;
+            transition: background-color 0.1s;
+        }
+        .kp-table tbody tr.dragging {
+            opacity: 0.5;
+            background-color: var(--bg-tertiary);
+        }
+        .kp-table tbody tr.drag-over {
+            border-top: 2px solid var(--accent-gradient-start);
+        }
+        .kp-footer {
+            margin-top: 15px;
+            font-size: 9pt;
+            color: var(--text-secondary);
+            background: var(--footer-bg);
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 4px solid var(--footer-border);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .kp-footer p {
+            margin: 5px 0;
+        }
+        .signature-contacts-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+        .director-section {
+            flex: 1;
+        }
+        .executor-section {
+            text-align: right;
+            font-size: 9pt;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .executor-section p {
+            margin: 0 0 3px 0;
+            line-height: 1.4;
+        }
+        .executor-section p:first-child {
+            margin-top: 0;
+        }
+        .executor-section strong {
+            color: var(--text-secondary);
+        }
+        .signature-line { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            flex-wrap: nowrap;
+            line-height: 1.4;
+        }
+        .signature-label { 
+            font-weight: 600; 
+            white-space: nowrap; 
+            color: var(--text-primary); 
+            line-height: inherit;
+        }
+        .signature-place {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .signature-img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            vertical-align: middle;
+            display: inline-block;
+        }
+        .signature-img.hidden {
+            display: none;
+        }
+        .signature-underscores {
+            white-space: nowrap;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            font-size: 14pt;
+            line-height: 1;
+            min-width: 150px;
+        }
+        .signature-img:not(.hidden) + .signature-underscores {
+            display: none;
+        }
+        .signature-name { 
+            white-space: nowrap; 
+            color: var(--text-primary); 
+            margin-left: 5px;
+            line-height: inherit;
+        }
+        .amount-in-words {
+            margin-top: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: var(--footer-bg);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--footer-border);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-light);
+            margin: 24px 0;
+            transition: border-color 0.3s;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media print {
+            @page { size: A4; margin: 10mm; }
+            body { 
+                background: white; 
+                padding: 0; 
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body, body.dark-theme {
+                --bg-primary: #f8fafc !important;
+                --bg-secondary: #ffffff !important;
+                --bg-tertiary: #f1f5f9 !important;
+                --text-primary: #0f172a !important;
+                --text-secondary: #374151 !important;
+                --text-muted: #64748b !important;
+                --border-light: #e2e8f0 !important;
+                --border-medium: #d1d5db !important;
+                --accent-gradient-start: #7c3aed !important;
+                --accent-gradient-end: #8b5cf6 !important;
+                --shadow-sm: 0 2px 6px rgba(0,0,0,0.05) !important;
+                --shadow-md: 0 4px 12px rgba(0,0,0,0.08) !important;
+                --shadow-lg: 0 20px 40px -12px rgba(0,0,0,0.3) !important;
+                --auth-overlay: rgba(15, 23, 42, 0.95) !important;
+                --btn-logout-bg: #ffffff !important;
+                --btn-logout-text: #64748b !important;
+                --btn-logout-border: #e2e8f0 !important;
+                --btn-logout-hover-bg: #f8fafc !important;
+                --btn-logout-hover-border: #cbd5e1 !important;
+                --btn-logout-hover-text: #0f172a !important;
+                --table-header-bg: #f8fafc !important;
+                --footer-bg: #f8fafc !important;
+                --footer-border: #7c3aed !important;
+                --input-bg: #f8fafc !important;
+                --input-border: #e2e8f0 !important;
+                --input-focus-shadow: rgba(124, 58, 237, 0.1) !important;
+                --error-bg: #fef2f2 !important;
+                --error-border: #fecaca !important;
+                --error-text: #dc2626 !important;
+                --hint-bg: #fef3c7 !important;
+                --hint-border: #f59e0b !important;
+                --hint-text: #92400e !important;
+                --auth-footer-border: #f1f5f9 !important;
+                --auth-footer-code-bg: #f1f5f9 !important;
+                --auth-footer-code-text: #7c3aed !important;
+                --control-panel-border: #e2e8f0 !important;
+                --modal-overlay: rgba(0,0,0,0.6) !important;
+            }
+            #authContainer, .top-right-buttons, .control-panel, .modal { display: none !important; }
+            #printable-area { 
+                box-shadow: none; 
+                padding: 0; 
+                width: 100%; 
+                max-width: 100%; 
+                margin: 0; 
+                font-size: 10pt; 
+                border: none; 
+                border-radius: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                opacity: 1 !important;
+                background: var(--bg-secondary) !important;
+                color: var(--text-primary) !important;
+            }
+            .no-print { display: none !important; }
+            .doc-header-text { width: auto; }
+            .doc-logo { 
+                max-width: 120px; 
+                display: block !important;
+            }
+            .doc-logo.hidden { display: none !important; }
+            .kp-table tbody tr { cursor: default; }
+            .amount-in-words,
+            .kp-footer,
+            .conditions-box { 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background: var(--footer-bg) !important;
+                border-left: 4px solid var(--footer-border) !important;
+            }
+            .kp-title {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            h1, h2, h3, h4, h5, h6, p, span, div {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .signature-img {
+                display: inline-block !important;
+            }
+            .signature-img.hidden {
+                display: none !important;
+            }
+            .signature-underscores {
+                display: inline-block;
+            }
+            .executor-section {
+                color: var(--text-muted) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ---------- ОКНО АВТОРИЗАЦИИ ---------- -->
+<div id="authContainer">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </div>
+        <div class="auth-error" id="authError">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span id="authErrorMessage">Неверный логин или пароль</span>
+        </div>
+        <div class="auth-input-group">
+            <label>Логин</label>
+            <div class="auth-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                </svg>
+                <input type="text" id="loginInput" placeholder="" autocomplete="off">
+            </div>
+        </div>
+        <div class="auth-input-group">
+            <label>Пароль</label>
+            <div class="auth-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" id="passwordInput" placeholder="" autocomplete="off">
+            </div>
+        </div>
+        <button class="auth-btn" id="loginBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10,17 15,12 10,7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            Войти
+        </button>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения очистки -->
+<div id="clearConfirmModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Подтверждение очистки</div>
+        <div class="modal-body">Вы уверены, что хотите сбросить все данные формы? Это действие нельзя отменить.</div>
+        <div class="modal-footer">
+            <button class="modal-btn cancel" id="modalCancelBtn">Отмена</button>
+            <button class="modal-btn confirm" id="modalConfirmBtn">Очистить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Контейнер для тостов -->
+<div id="toastContainer"></div>
+
+      <!-- Группа кнопок справа вверху -->
+<div class="top-right-buttons">
+    <button class="admin-users-btn" id="adminUsersBtn" title="Управление пользователями">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+        </svg>
+    </button>
+    <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16,17 21,12 16,7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+    </button>
+</div>
+
+<!-- Панель управления -->
+<div class="control-panel">
+    <h3>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        Информация о сделке
+    </h3>
+    <div class="form-group">
+        <label>Заказчик:</label>
+        <input type="text" id="inCustomer" value="">
+    </div>
+    <div class="row-inputs">
+        <div class="form-group small-date">
+            <label>Дата:</label>
+            <input type="date" id="inDate">
+        </div>
+        <div class="form-group small-kp">
+            <label>Номер КП:</label>
+            <input type="text" id="inKpNumber" value="1" maxlength="10">
+        </div>
+        <div class="form-group small-term">
+            <label>Срок действия:</label>
+            <input type="text" id="inValidityDays" value="10" maxlength="3">
+        </div>
+    </div>
+
+    <hr>
+    
+    <h3 id="designHeader" class="collapsed">
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="2" y="2" width="20" height="20" rx="2" stroke-width="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+            <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor"/>
+            <path d="M21 15v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1" stroke-width="2"/>
+        </svg>
+        Логотип и факсимиле
+        <span class="collapse-icon">▶</span>
+    </h3>
+    <div id="designContent" class="collapsible-content collapsed">
+        <div class="logo-signature-row">
+            <div class="form-group">
+                <label>Логотип компании:</label>
+                <input type="file" id="logoUpload" accept="image/png, image/jpeg, image/svg+xml" style="padding: 6px;">
+            </div>
+            <div class="form-group">
+                <label>Факсимиле:</label>
+                <input type="file" id="signatureUpload" accept="image/png, image/jpeg, image/svg+xml" style="padding: 6px;">
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <h3>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 8v13H3V8"/>
+            <path d="M1 3h22v5H1z"/>
+            <path d="M10 12h4"/>
+        </svg>
+        Условия поставки
+    </h3>
+    
+    <!-- Единый блок условий поставки: по два списка в ряду -->
+    <div class="conditions-grid">
+        <div class="form-group">
+            <label>Условия оплаты:</label>
+            <select id="inPayment">
+                <option value="по факту поставки в течение 5 рабочих дней">по факту поставки в течение 5 рабочих дней</option>
+                <option value="по факту поставки в течение 10 рабочих дней">по факту поставки в течение 10 рабочих дней</option>
+                <option value="50% предоплата, 50% по факту поставки на склад Покупателя в течение 5 рабочих дней">50% предоплата, 50% по факту поставки на склад Покупателя в течение 5 рабочих дней</option>
+                <option value="100% предоплата" selected>100% предоплата</option>
+                <option value="по договоренности">по договоренности</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Срок поставки:</label>
+            <select id="inDeliveryTime">
+                <option value="в течение 5 рабочих дней с момента подписания счета/договора" selected>в течение 5 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 7 рабочих дней с момента подписания счета/договора">в течение 7 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 10 рабочих дней с момента подписания счета/договора">в течение 10 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 15 рабочих дней с момента подписания счета/договора">в течение 15 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 25 рабочих дней с момента подписания счета/договора">в течение 25 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 30 рабочих дней с момента подписания счета/договора">в течение 30 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 45 рабочих дней с момента подписания счета/договора">в течение 45 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 60 рабочих дней с момента подписания счета/договора">в течение 60 рабочих дней с момента подписания счета/договора</option>
+                <option value="в течение 75 рабочих дней с момента подписания счета/договора">в течение 75 рабочих дней с момента подписания счета/договора</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Гарантия:</label>
+            <select id="inWarranty">
+                <option value="на оборудование 12 месяцев" selected>на оборудование 12 месяцев</option>
+                <option value="на оборудование 24 месяца">на оборудование 24 месяца</option>
+                <option value="на оборудование 36 месяцев">на оборудование 36 месяцев</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Доставка:</label>
+            <select id="inShipping">
+                <option value="самовывоз">самовывоз</option>
+                <option value="за счет Продавца" selected>за счет Продавца</option>
+            </select>
+        </div>
+    </div>
+
+    <hr>
+    <h3>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Товары / Услуги
+    </h3>
+    <div class="row-inputs" id="itemFormRow">
+        <div class="form-group" style="flex-grow: 3;">
+            <label>Наименование</label>
+            <textarea id="newItemName" rows="2" placeholder="Укажите наименование..."></textarea>
+        </div>
+        <div class="form-group small"><label>Ед.</label><input type="text" id="newItemUnit" value="шт."></div>
+        <div class="form-group small"><label>Кол-во</label><input type="number" id="newItemQty" value="" min="0.01" step="0.01"></div>
+        <div class="form-group small"><label>Цена (без НДС)</label><input type="number" id="newItemPrice" value="" min="0.01" step="0.01"></div>
+        <div class="form-group small">
+            <label>НДС %</label>
+            <select id="newItemVatRate">
+                <option value="0">0%</option>
+                <option value="10">10%</option>
+                <option value="20" selected>20%</option>
+            </select>
+        </div>
+        <button class="btn-update" id="updateBtn" onclick="saveItem()" title="Сохранить изменения">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </button>
+        <button class="btn-cancel" id="cancelBtn" onclick="cancelEdit()" title="Отмена">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+     <div class="action-buttons">
+        <button class="btn-load" onclick="document.getElementById('fileInput').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Загрузить
+        </button>
+        <button class="btn-save" onclick="saveData()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Сохранить
+        </button>
+        <button class="btn-clear" id="clearBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+            Очистить
+        </button>
+        <button class="btn-print" onclick="printDocument()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9V3h12v6"/>
+                <path d="M6 21h12v-6H6z"/>
+                <path d="M18 9v3H6V9z"/>
+                <circle cx="18" cy="15" r="1"/>
+            </svg>
+            Печать
+        </button>
+    </div>
+    
+    <div class="browser-hint" id="browserHint">
+        <strong>⚠️ Ваш браузер:</strong> Для выбора места сохранения файла включите в настройках браузера опцию <em>«Всегда спрашивать, куда сохранять файлы»</em>. 
+        <br>🔹 <strong>Firefox:</strong> Настройки → Основные → Файлы и приложения → ✅ «Всегда спрашивать»
+        <br>🔹 <strong>Safari:</strong> Зажмите клавишу <kbd>Option (⌥)</kbd> при нажатии на кнопку «Сохранить»
+    </div>
+    
+    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="loadData(this)">
+</div>
+
+<div id="printable-area">
+    <div class="doc-header">
+        <img id="logoImg" src="" alt="Логотип" class="doc-logo hidden">
+        <div class="doc-header-text">
+            <strong>ООО «Серверы и сети»</strong><br>
+            УНП 193472550<br>
+            Р/сч: BY22 BPSB 3012 3183 1801 9933 0000 в Дополнительном офисе №701<br>
+            ОАО «СБЕР БАНК» Код банка BPSBBY2X, г. Минск, ул. Чкалова, 18/1<br>
+            Юр. адрес: 220014, г. Минск, пр. Жукова, д. 44/2, пом. 2-8<br>
+            тел.: +(375 29) 368-69-68, тел. +(375 29) 919-59-99
+        </div>
+    </div>
+
+    <div class="doc-meta">
+        <div><strong><span id="outDate"></span></strong></div>
+    </div>
+    <div class="doc-meta" style="margin-top: -5px;">
+        <div><strong>Заказчик: <span id="outCustomer"></span></strong></div>
+    </div>
+
+    <div class="kp-title">Ценовое предложение №<span id="outKpNumber">1</span></div>
+
+    <!-- Новый блок условий вместо таблицы -->
+    <div class="conditions-box">
+        <div><strong>Условия оплаты:</strong> <span id="outPayment">100% предоплата</span></div>
+        <div><strong>Срок поставки:</strong> <span id="outDeliveryTime">в течение 5 рабочих дней с момента подписания счета/договора</span></div>
+        <div><strong>Гарантия:</strong> <span id="outWarranty">на оборудование 12 месяцев</span></div>
+        <div><strong>Доставка:</strong> <span id="outShipping">за счет Продавца</span></div>
+    </div>
+
+    <table class="kp-table">
+        <thead>
+            <tr><th style="width: 25px;">№</th><th style="min-width: 250px;">Наименование</th><th style="width: 40px;">Ед.</th><th style="width: 40px;">Кол-во</th><th style="width: 75px;">Цена без НДС</th><th style="width: 80px;">Сумма без НДС</th><th style="width: 45px;">НДС %</th><th style="width: 75px;">Сумма НДС</th><th style="width: 85px;">Всего с НДС</th><th class="no-print" style="width: 50px;"></th></tr>
+        </thead>
+        <tbody id="itemsTableBody"></tbody>
+        <tfoot><tr><td colspan="5" style="text-align: right;">Итого:</td><td class="num" id="totalSumNoVat"></td><td></td><td class="num" id="totalVat"></td><td class="num" id="totalSumVat"></td><td class="no-print"></td></tr>
+        </tfoot>
+    </table>
+
+    <div class="amount-in-words" id="totalWithWords"></div>
+
+    <div class="kp-footer">
+        <p>Цена сформирована самостоятельно с учетом конъюнктуры рынка.</p>
+        <p>На момент акцепта оставляем за собой право уточнить возможность поставки.</p>
+        <p>Срок действия предложения – <span id="outValidityNum">10</span> календарных <span id="outValiditySuffix">дней</span></p>
+    </div>
+
+    <div class="signature-contacts-row">
+        <div class="director-section">
+            <div class="signature-line">
+                <span class="signature-label">Директор</span>
+                <span class="signature-place">
+                    <img id="signatureImg" src="" alt="Подпись" class="signature-img hidden">
+                    <span class="signature-underscores"></span>
+                </span>
+                <span class="signature-name">Красовский А. В.</span>
+            </div>
+        </div>
+        <div class="executor-section">
+            <p><strong>Исполнитель</strong> <span id="outExecutor">Чайко А. В.</span></p>
+            <p><strong>тел.</strong> <span id="outPhone">+(375 29) 368-69-68, +(375 29) 919-59-99</span></p>
+            <p><strong>e-mail:</strong> <span id="outEmail">sales1@server-x.by</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== ЧИСТАЯ РЕАЛИЗАЦИЯ SHA-256 ==========
+    function sha256(message) {
+        function rotr(x, n) { return (x >>> n) | (x << (32 - n)); }
+        function ch(x, y, z) { return (x & y) ^ (~x & z); }
+        function maj(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); }
+        function sigma0(x) { return rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22); }
+        function sigma1(x) { return rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25); }
+        function gamma0(x) { return rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3); }
+        function gamma1(x) { return rotr(x, 17) ^ rotr(x, 19) ^ (x >>> 10); }
+
+        const K = [
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+        ];
+
+        const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+
+        const msgBytes = new TextEncoder().encode(message);
+        const msgBitLen = msgBytes.length * 8;
+
+        const msg = new Uint8Array(msgBytes.length + 1 + 8 + (64 - ((msgBytes.length + 1 + 8) % 64)));
+        msg.set(msgBytes);
+        msg[msgBytes.length] = 0x80;
+        const view = new DataView(msg.buffer);
+        view.setUint32(msg.length - 4, msgBitLen >>> 0, false);
+        view.setUint32(msg.length - 8, Math.floor(msgBitLen / 0x100000000), false);
+
+        for (let i = 0; i < msg.length; i += 64) {
+            const W = new Uint32Array(64);
+            for (let t = 0; t < 16; t++) {
+                W[t] = view.getUint32(i + t * 4, false);
+            }
+            for (let t = 16; t < 64; t++) {
+                W[t] = (gamma1(W[t - 2]) + W[t - 7] + gamma0(W[t - 15]) + W[t - 16]) >>> 0;
+            }
+
+            let [a, b, c, d, e, f, g, h] = H;
+
+            for (let t = 0; t < 64; t++) {
+                const T1 = (h + sigma1(e) + ch(e, f, g) + K[t] + W[t]) >>> 0;
+                const T2 = (sigma0(a) + maj(a, b, c)) >>> 0;
+                h = g;
+                g = f;
+                f = e;
+                e = (d + T1) >>> 0;
+                d = c;
+                c = b;
+                b = a;
+                a = (T1 + T2) >>> 0;
+            }
+
+            H[0] = (H[0] + a) >>> 0;
+            H[1] = (H[1] + b) >>> 0;
+            H[2] = (H[2] + c) >>> 0;
+            H[3] = (H[3] + d) >>> 0;
+            H[4] = (H[4] + e) >>> 0;
+            H[5] = (H[5] + f) >>> 0;
+            H[6] = (H[6] + g) >>> 0;
+            H[7] = (H[7] + h) >>> 0;
+        }
+
+        return H.map(x => x.toString(16).padStart(8, '0')).join('');
+    }
+
+    // ========== СИСТЕМА УВЕДОМЛЕНИЙ (ТОСТЫ) ==========
+    function showToast(message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        let iconSvg = '';
+        if (type === 'success') {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+        } else if (type === 'error') {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+        } else if (type === 'warning') {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`;
+        } else {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+        }
+        
+        toast.innerHTML = `
+            ${iconSvg}
+            <div class="toast-content">${message}</div>
+            <button class="toast-close" aria-label="Закрыть">&times;</button>
+        `;
+        
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        const closeBtn = toast.querySelector('.toast-close');
+        const removeToast = () => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) container.removeChild(toast);
+            }, 300);
+        };
+        closeBtn.addEventListener('click', removeToast);
+        const timeoutId = setTimeout(removeToast, duration);
+        toast.addEventListener('mouseenter', () => clearTimeout(timeoutId));
+        toast.addEventListener('mouseleave', () => {
+            const newTimeout = setTimeout(removeToast, duration);
+            toast.dataset.timeoutId = newTimeout;
+        });
+    }
+
+    // ========== АВТОРИЗАЦИЯ ==========
+    (function() {
+        'use strict';
+        const authContainer = document.getElementById('authContainer');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminUsersBtn = document.getElementById('adminUsersBtn');
+        const loginInput = document.getElementById('loginInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const authError = document.getElementById('authError');
+        const authErrorMessage = document.getElementById('authErrorMessage');
+        
+        function checkAuth() {
+            const isAuth = localStorage.getItem('gen_cp_authenticated');
+            if (isAuth === 'true') {
+                authContainer.classList.add('hidden');
+                logoutBtn.classList.add('show');
+                document.body.classList.add('auth-success');
+                document.body.classList.remove('auth-required');
+                const user = localStorage.getItem('gen_cp_user') || '';
+                showToast(`Добро пожаловать, ${user}!`, 'success', 3000);
+                if (localStorage.getItem('gen_cp_role') === 'admin') adminUsersBtn.classList.add('show');
+            } else {
+                authContainer.classList.remove('hidden');
+                logoutBtn.classList.remove('show');
+                adminUsersBtn.classList.remove('show');
+                document.body.classList.add('auth-required');
+                document.body.classList.remove('auth-success');
+            }
+        }
+        async function login() {
+            const login = loginInput.value.trim();
+            const password = passwordInput.value;
+            if (!login || !password) {
+                authError.classList.add('show');
+                authErrorMessage.textContent = 'Введите логин и пароль';
+                return;
+            }
+            const originalBtnHTML = loginBtn.innerHTML;
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; width: 18px; height: 18px;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="0.75"/></svg> Проверка...`;
+            try {
+                const response = await fetch('db.json');
+                if (!response.ok) throw new Error(`Файл db.json не найден (статус ${response.status})`);
+                const data = await response.json();
+                const users = data.users;
+                if (!Array.isArray(users)) throw new Error('Некорректный формат db.json');
+                const user = users.find(u => u.login === login && u.passw === password);
+                if (user) {
+                    localStorage.setItem('gen_cp_authenticated', 'true');
+                    localStorage.setItem('gen_cp_user', login);
+                    localStorage.setItem('gen_cp_role', user.role || 'user');
+                    localStorage.setItem('gen_cp_executor', user.executor || '');
+                    localStorage.setItem('gen_cp_phone', user.phone || '');
+                    localStorage.setItem('gen_cp_email', user.email || '');
+                    window.location.reload();
+                } else {
+                    authError.classList.add('show');
+                    authErrorMessage.textContent = 'Неверный логин или пароль';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            } catch (error) {
+                console.error(error);
+                authError.classList.add('show');
+                authErrorMessage.textContent = `Ошибка: ${error.message}`;
+                showToast(`Ошибка авторизации: ${error.message}`, 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = originalBtnHTML;
+            }
+        }
+        function logout() {
+            localStorage.removeItem('gen_cp_authenticated');
+            localStorage.removeItem('gen_cp_user');
+            if (window.clearFormSilent) window.clearFormSilent();
+            authContainer.classList.remove('hidden');
+            logoutBtn.classList.remove('show');
+            adminUsersBtn.classList.remove('show');
+            document.body.classList.add('auth-required');
+            document.body.classList.remove('auth-success');
+            authError.classList.remove('show');
+            loginInput.value = '';
+            passwordInput.value = '';
+            showToast('Вы вышли из системы', 'info', 2000);
+        }
+        loginBtn.addEventListener('click', login);
+        loginInput.addEventListener('keypress', e => { if (e.key === 'Enter') passwordInput.focus(); });
+        passwordInput.addEventListener('keypress', e => { if (e.key === 'Enter') login(); });
+        logoutBtn.addEventListener('click', logout);
+        adminUsersBtn.addEventListener('click', () => { window.open('/aut.html', '_blank'); });
+        checkAuth();
+    })();
+
+    // ========== ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ ==========
+    function initOriginalApp() {
+        const btnSave = document.querySelector('.btn-save');
+        const btnLoad = document.querySelector('.btn-load');
+        btnSave.disabled = false;
+        btnLoad.disabled = false;
+        btnSave.title = '';
+        btnLoad.title = '';
+        
+        let items = [];
+        let itemCounter = 1;
+        let editingId = null;
+        let logoSrc = '';
+        let signatureSrc = '';
+        let dragSourceRow = null;
+        let dragSourceIndex = -1;
+
+        document.getElementById('inDate').valueAsDate = new Date();
+
+        function applyUserData() {
+            const executor = localStorage.getItem('gen_cp_executor') || '';
+            const phone = localStorage.getItem('gen_cp_phone') || '';
+            const email = localStorage.getItem('gen_cp_email') || '';
+            document.getElementById('outExecutor').textContent = executor || '—';
+            document.getElementById('outPhone').textContent = phone || '—';
+            document.getElementById('outEmail').textContent = email || '—';
+        }
+        applyUserData();
+        
+        (function detectBrowser() {
+            const ua = navigator.userAgent;
+            const isFirefox = ua.includes('Firefox');
+            const isSafari = navigator.vendor && navigator.vendor.includes('Apple') && !/Chrome/.test(ua);
+            if (isFirefox || isSafari) document.getElementById('browserHint').classList.add('visible');
+        })();
+
+        const designHeader = document.getElementById('designHeader');
+        const designContent = document.getElementById('designContent');
+        const collapseIcon = designHeader.querySelector('.collapse-icon');
+        function toggleDesignBlock() {
+            designContent.classList.toggle('collapsed');
+            designHeader.classList.toggle('collapsed');
+            collapseIcon.textContent = designContent.classList.contains('collapsed') ? '▶' : '▼';
+        }
+        designHeader.addEventListener('click', toggleDesignBlock);
+
+        function getDayWord(num) {
+            num = Math.abs(num) % 100;
+            let n = num % 10;
+            if (num > 10 && num < 20) return 'дней';
+            if (n > 1 && n < 5) return 'дня';
+            if (n == 1) return 'день';
+            return 'дней';
+        }
+
+        function formatMoney(num) {
+            if (Math.abs(num) < 0.001) return '';
+            return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ').replace('.', ',');
+        }
+
+        function numberToWords(amount) {
+            const integer = Math.floor(amount);
+            const kopecks = Math.round((amount - integer) * 100);
+            const units = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+            const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+            const tens = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+            const hundreds = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+            const thousands = ['тысяча', 'тысячи', 'тысяч'];
+            const millions = ['миллион', 'миллиона', 'миллионов'];
+            const billions = ['миллиард', 'миллиарда', 'миллиардов'];
+            
+            function getUnitForm(n, forms) {
+                n = Math.abs(n) % 100;
+                let n1 = n % 10;
+                if (n > 10 && n < 20) return forms[2];
+                if (n1 > 1 && n1 < 5) return forms[1];
+                if (n1 === 1) return forms[0];
+                return forms[2];
+            }
+            function convertChunk(num, female = false) {
+                if (num === 0) return '';
+                let result = '';
+                if (num >= 100) { result += hundreds[Math.floor(num / 100)] + ' '; num %= 100; }
+                if (num >= 20) { result += tens[Math.floor(num / 10)] + ' '; num %= 10; }
+                if (num >= 10) { result += teens[num - 10] + ' '; num = 0; }
+                if (num > 0) {
+                    let word = units[num];
+                    if (female && (num === 1 || num === 2)) word = (num === 1) ? 'одна' : 'две';
+                    result += word + ' ';
+                }
+                return result;
+            }
+            let words = '';
+            let remainder = integer;
+            if (remainder >= 1e9) { let billionsPart = Math.floor(remainder / 1e9); words += convertChunk(billionsPart) + getUnitForm(billionsPart, billions) + ' '; remainder %= 1e9; }
+            if (remainder >= 1e6) { let millionsPart = Math.floor(remainder / 1e6); words += convertChunk(millionsPart) + getUnitForm(millionsPart, millions) + ' '; remainder %= 1e6; }
+            if (remainder >= 1e3) { let thousandsPart = Math.floor(remainder / 1e3); words += convertChunk(thousandsPart, true) + getUnitForm(thousandsPart, thousands) + ' '; remainder %= 1e3; }
+            if (remainder > 0) words += convertChunk(remainder);
+            words = words.trim();
+            if (words === '') words = 'ноль';
+            words = words.charAt(0).toLowerCase() + words.slice(1);
+            const rubWord = 'белорусских рублей';
+            const kopWord = (kopecks === 0) ? '00 копеек' : `${kopecks} ${getUnitForm(kopecks, ['копейка', 'копейки', 'копеек'])}`;
+            return `${words} ${rubWord} ${kopWord}`;
+        }
+
+        function generateFileName(extension) {
+            const customerRaw = document.getElementById('inCustomer').value.trim();
+            const customerSafe = customerRaw ? customerRaw.replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g, '_').replace(/_+/g, '_') : 'Без_заказчика';
+            const kpNum = document.getElementById('inKpNumber').value || '1';
+            const dateVal = document.getElementById('inDate').value || new Date().toISOString().split('T')[0];
+            return `${customerSafe}_${kpNum}_${dateVal}.${extension}`;
+        }
+
+        window.printDocument = function() {
+            const originalTitle = document.title;
+            const fileName = generateFileName('pdf');
+            document.title = fileName;
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => { document.title = originalTitle; showToast('Документ отправлен на печать', 'success', 2000); }, 500);
+            }, 50);
+        };
+
+        window.generatePDF = async function() { showToast('Функция сохранения PDF временно недоступна', 'info', 3000); };
+
+        function updateMeta() {
+            document.getElementById('outKpNumber').innerText = document.getElementById('inKpNumber').value;
+            const dateVal = document.getElementById('inDate').value;
+            if(dateVal) { const d = new Date(dateVal); document.getElementById('outDate').innerText = d.toLocaleDateString('ru-RU'); }
+            document.getElementById('outCustomer').innerText = document.getElementById('inCustomer').value;
+            let days = parseInt(document.getElementById('inValidityDays').value) || 10;
+            document.getElementById('outValidityNum').innerText = days;
+            document.getElementById('outValiditySuffix').innerText = getDayWord(days);
+        }
+
+        function updateConditions() {
+            document.getElementById('outPayment').innerText = document.getElementById('inPayment').value;
+            document.getElementById('outDeliveryTime').innerText = document.getElementById('inDeliveryTime').value;
+            document.getElementById('outWarranty').innerText = document.getElementById('inWarranty').value;
+            document.getElementById('outShipping').innerText = document.getElementById('inShipping').value;
+        }
+
+        document.getElementById('logoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) { logoSrc = ev.target.result; const img = document.getElementById('logoImg'); img.src = logoSrc; img.classList.remove('hidden'); showToast('Логотип загружен', 'success', 2000); };
+            reader.readAsDataURL(file);
+        });
+        document.getElementById('signatureUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) { signatureSrc = ev.target.result; const img = document.getElementById('signatureImg'); img.src = signatureSrc; img.classList.remove('hidden'); showToast('Факсимиле загружено', 'success', 2000); };
+            reader.readAsDataURL(file);
+        });
+
+        function setEditMode(enable) {
+            const rowInputs = document.getElementById('itemFormRow');
+            if (enable) { rowInputs.classList.add('edit-mode'); } else { rowInputs.classList.remove('edit-mode'); editingId = null; }
+        }
+        window.editItem = function(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('newItemName').value = item.name;
+            document.getElementById('newItemUnit').value = item.unit;
+            document.getElementById('newItemQty').value = item.qty;
+            document.getElementById('newItemPrice').value = item.price;
+            document.getElementById('newItemVatRate').value = item.vatRate;
+            editingId = id;
+            setEditMode(true);
+        };
+        window.cancelEdit = function() {
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemUnit').value = 'шт.';
+            document.getElementById('newItemQty').value = '';
+            document.getElementById('newItemPrice').value = '';
+            document.getElementById('newItemVatRate').value = '20';
+            setEditMode(false);
+        };
+        window.saveItem = function() {
+            const name = document.getElementById('newItemName').value.trim();
+            const unit = document.getElementById('newItemUnit').value.trim() || 'шт.';
+            const qty = parseFloat(document.getElementById('newItemQty').value);
+            const price = parseFloat(document.getElementById('newItemPrice').value);
+            const vatRate = parseFloat(document.getElementById('newItemVatRate').value) || 0;
+            if (!name) { showToast('Введите наименование', 'warning', 3000); return; }
+            if (isNaN(qty) || qty <= 0) { showToast('Количество должно быть положительным числом', 'warning', 3000); return; }
+            if (isNaN(price) || price <= 0) { showToast('Цена должна быть положительным числом', 'warning', 3000); return; }
+            const sumNoVat = qty * price;
+            const vatSum = sumNoVat * (vatRate / 100);
+            const totalSum = sumNoVat + vatSum;
+            if (editingId !== null) {
+                const index = items.findIndex(i => i.id === editingId);
+                if (index !== -1) { items[index] = { ...items[index], name, unit, qty, price, vatRate, sumNoVat, vatSum, totalSum }; showToast('Позиция обновлена', 'success', 2000); }
+            } else {
+                items.push({ id: itemCounter++, name, unit, qty, price, vatRate, sumNoVat, vatSum, totalSum });
+                showToast('Позиция добавлена', 'success', 2000);
+            }
+            renderTable();
+            cancelEdit();
+        };
+        window.removeItem = function(id) {
+            items = items.filter(item => item.id !== id);
+            if (editingId === id) cancelEdit();
+            renderTable();
+            showToast('Позиция удалена', 'info', 2000);
+        };
+
+        function handleDragStart(e) {
+            const row = e.target.closest('tr');
+            if (!row || !row.dataset.id) return;
+            dragSourceRow = row;
+            dragSourceIndex = items.findIndex(item => item.id == row.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', row.dataset.id);
+            row.classList.add('dragging');
+        }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
+        function handleDragEnter(e) { const row = e.target.closest('tr'); if (row && row !== dragSourceRow) row.classList.add('drag-over'); }
+        function handleDragLeave(e) { const row = e.target.closest('tr'); if (row) row.classList.remove('drag-over'); }
+        function handleDrop(e) {
+            e.stopPropagation(); e.preventDefault();
+            const targetRow = e.target.closest('tr');
+            if (!targetRow || !targetRow.dataset.id || targetRow === dragSourceRow) return;
+            const targetId = parseInt(targetRow.dataset.id);
+            const targetIndex = items.findIndex(item => item.id === targetId);
+            if (dragSourceIndex === -1 || targetIndex === -1) return;
+            const [movedItem] = items.splice(dragSourceIndex, 1);
+            items.splice(targetIndex, 0, movedItem);
+            renderTable();
+            dragSourceRow = null; dragSourceIndex = -1;
+        }
+        function handleDragEnd(e) {
+            const row = e.target.closest('tr');
+            if (row) row.classList.remove('dragging');
+            document.querySelectorAll('.kp-table tbody tr').forEach(tr => tr.classList.remove('drag-over'));
+            dragSourceRow = null; dragSourceIndex = -1;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+            let tSumNoVat = 0, tVat = 0, tSumVat = 0;
+            items.forEach((item, index) => {
+                tSumNoVat += item.sumNoVat;
+                tVat += item.vatSum;
+                tSumVat += item.totalSum;
+                const tr = document.createElement('tr');
+                tr.dataset.id = item.id;
+                tr.draggable = true;
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="text-left">${item.name.replace(/\n/g, '<br>')}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.qty}</td>
+                    <td class="num">${formatMoney(item.price)}</td>
+                    <td class="num">${formatMoney(item.sumNoVat)}</td>
+                    <td>${item.vatRate}%</td>
+                    <td class="num">${formatMoney(item.vatSum)}</td>
+                    <td class="num">${formatMoney(item.totalSum)}</td>
+                    <td class="no-print"><button class="btn-edit" onclick="editItem(${item.id})" title="Редактировать">✎</button><button class="btn-danger" onclick="removeItem(${item.id})" title="Удалить">✖</button></td>
+                `;
+                tr.addEventListener('dragstart', handleDragStart);
+                tr.addEventListener('dragenter', handleDragEnter);
+                tr.addEventListener('dragover', handleDragOver);
+                tr.addEventListener('dragleave', handleDragLeave);
+                tr.addEventListener('drop', handleDrop);
+                tr.addEventListener('dragend', handleDragEnd);
+                tbody.appendChild(tr);
+            });
+            document.getElementById('totalSumNoVat').innerText = formatMoney(tSumNoVat);
+            document.getElementById('totalVat').innerText = formatMoney(tVat);
+            document.getElementById('totalSumVat').innerText = formatMoney(tSumVat);
+            if (Math.abs(tSumVat) < 0.001) {
+                document.getElementById('totalWithWords').innerHTML = '';
+            } else {
+                const totalFormatted = formatMoney(tSumVat);
+                const totalWords = numberToWords(tSumVat);
+                document.getElementById('totalWithWords').innerHTML = `Итого: ${totalFormatted} (${totalWords})`;
+            }
+        }
+
+        document.getElementById('itemsTableBody').addEventListener('dblclick', (e) => {
+            const row = e.target.closest('tr');
+            if (!row) return;
+            const id = parseInt(row.dataset.id);
+            if (!isNaN(id)) editItem(id);
+        });
+
+        function clearFormSilent() {
+            document.getElementById('inCustomer').value = '';
+            document.getElementById('inDate').valueAsDate = new Date();
+            document.getElementById('inKpNumber').value = '1';
+            document.getElementById('inValidityDays').value = '10';
+            document.getElementById('inPayment').value = '100% предоплата';
+            document.getElementById('inDeliveryTime').value = 'в течение 5 рабочих дней с момента подписания счета/договора';
+            document.getElementById('inWarranty').value = 'на оборудование 12 месяцев';
+            document.getElementById('inShipping').value = 'за счет Продавца';
+            items = [];
+            itemCounter = 1;
+            renderTable();
+            cancelEdit();
+            logoSrc = '';
+            signatureSrc = '';
+            const logoImg = document.getElementById('logoImg');
+            logoImg.src = '';
+            logoImg.classList.add('hidden');
+            const signImg = document.getElementById('signatureImg');
+            signImg.src = '';
+            signImg.classList.add('hidden');
+            document.getElementById('logoUpload').value = '';
+            document.getElementById('signatureUpload').value = '';
+            updateMeta();
+            updateConditions();
+        }
+        window.clearFormSilent = clearFormSilent;
+
+        // Модальное окно очистки
+        const clearModal = document.getElementById('clearConfirmModal');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        function showClearModal() { clearModal.classList.add('show'); }
+        function hideClearModal() { clearModal.classList.remove('show'); }
+        function performClear() { clearFormSilent(); showToast('Форма очищена', 'info', 2000); hideClearModal(); }
+        modalCancelBtn.addEventListener('click', hideClearModal);
+        modalConfirmBtn.addEventListener('click', performClear);
+        clearModal.addEventListener('click', (e) => { if (e.target === clearModal) hideClearModal(); });
+        document.getElementById('clearBtn').addEventListener('click', showClearModal);
+
+        window.saveData = function() {
+            const fileName = generateFileName('json');
+            const data = {
+                version: '1.2',
+                savedAt: new Date().toISOString(),
+                logo: logoSrc || null,
+                signature: signatureSrc || null,
+                meta: {
+                    customer: document.getElementById('inCustomer').value,
+                    date: document.getElementById('inDate').value,
+                    kpNumber: document.getElementById('inKpNumber').value,
+                    validityDays: document.getElementById('inValidityDays').value
+                },
+                conditions: {
+                    payment: document.getElementById('inPayment').value,
+                    deliveryTime: document.getElementById('inDeliveryTime').value,
+                    warranty: document.getElementById('inWarranty').value,
+                    shipping: document.getElementById('inShipping').value
+                },
+                items: items
+            };
+            if (window.showSaveFilePicker) {
+                (async () => {
+                    try {
+                        const handle = await window.showSaveFilePicker({ suggestedName: fileName, types: [{ description: 'JSON File', accept: { 'application/json': ['.json'] } }] });
+                        const writable = await handle.createWritable();
+                        await writable.write(JSON.stringify(data, null, 2));
+                        await writable.close();
+                        showToast('Файл успешно сохранён', 'success', 3000);
+                    } catch (err) { if (err.name !== 'AbortError') showToast('Ошибка при сохранении файла', 'error'); }
+                })();
+                return;
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Файл сохранён', 'success', 2000);
+        };
+
+        window.loadData = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    items = [];
+                    itemCounter = 1;
+                    cancelEdit();
+                    if (data.logo) { logoSrc = data.logo; const img = document.getElementById('logoImg'); img.src = logoSrc; img.classList.remove('hidden'); } else { logoSrc = ''; const img = document.getElementById('logoImg'); img.src = ''; img.classList.add('hidden'); }
+                    if (data.signature) { signatureSrc = data.signature; const signImg = document.getElementById('signatureImg'); signImg.src = signatureSrc; signImg.classList.remove('hidden'); } else { signatureSrc = ''; const signImg = document.getElementById('signatureImg'); signImg.src = ''; signImg.classList.add('hidden'); }
+                    document.getElementById('logoUpload').value = '';
+                    document.getElementById('signatureUpload').value = '';
+                    if (data.meta) {
+                        document.getElementById('inCustomer').value = data.meta.customer || '';
+                        document.getElementById('inDate').value = data.meta.date || '';
+                        document.getElementById('inKpNumber').value = data.meta.kpNumber || '1';
+                        document.getElementById('inValidityDays').value = data.meta.validityDays || '10';
+                    }
+                    if (data.conditions) {
+                        document.getElementById('inPayment').value = data.conditions.payment || '';
+                        document.getElementById('inDeliveryTime').value = data.conditions.deliveryTime || '';
+                        document.getElementById('inWarranty').value = data.conditions.warranty || '';
+                        document.getElementById('inShipping').value = data.conditions.shipping || '';
+                    }
+                    if (data.items && Array.isArray(data.items)) {
+                        let maxId = 0;
+                        items = data.items.map((item, idx) => {
+                            const id = item.id || (idx + 1);
+                            if (id > maxId) maxId = id;
+                            return {
+                                id: id,
+                                name: item.name || '',
+                                unit: item.unit || 'шт.',
+                                qty: item.qty || 0,
+                                price: item.price || 0,
+                                vatRate: item.vatRate || 20,
+                                sumNoVat: item.sumNoVat || 0,
+                                vatSum: item.vatSum || 0,
+                                totalSum: item.totalSum || 0
+                            };
+                        });
+                        itemCounter = maxId + 1;
+                    }
+                    renderTable();
+                    updateMeta();
+                    updateConditions();
+                    cancelEdit();
+                    showToast('Данные успешно загружены', 'success', 3000);
+                } catch (err) {
+                    showToast('Ошибка при загрузке файла: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        };
+
+        document.getElementById('inKpNumber').addEventListener('input', updateMeta);
+        document.getElementById('inDate').addEventListener('input', updateMeta);
+        document.getElementById('inCustomer').addEventListener('input', updateMeta);
+        document.getElementById('inValidityDays').addEventListener('input', updateMeta);
+        document.getElementById('inPayment').addEventListener('change', updateConditions);
+        document.getElementById('inDeliveryTime').addEventListener('change', updateConditions);
+        document.getElementById('inWarranty').addEventListener('change', updateConditions);
+        document.getElementById('inShipping').addEventListener('change', updateConditions);
+
+        updateMeta();
+        updateConditions();
+        setEditMode(false);
+        renderTable();
+    }
+
+    if (localStorage.getItem('gen_cp_authenticated') === 'true') {
+        initOriginalApp();
+        window.appInitialized = true;
+    }
+</script>
+</body>
+</html>
